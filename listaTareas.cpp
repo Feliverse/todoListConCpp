@@ -20,6 +20,7 @@ void mostrarMenu();
 void agregarTarea(vector<Tarea>& tareas);
 void mostrarTareas(const vector<Tarea>& tareas);
 void eliminarTarea(vector<Tarea>& tareas);
+void marcarTareaCompletada(vector<Tarea>& tareas);
 void guardarTareas(const vector<Tarea>& tareas);
 void cargarTareas(vector<Tarea>& tareas);
 
@@ -42,16 +43,19 @@ int main() {
                 mostrarTareas(tareas);
                 break;
             case 3:
-                eliminarTarea(tareas);
+                marcarTareaCompletada(tareas);
                 break;
             case 4:
+                eliminarTarea(tareas);
+                break;
+            case 5:
                 guardarTareas(tareas);
                 cout << "Tareas guardadas. ¡Hasta luego!\n";
                 break;
             default:
                 cout << "Opción no válida.\n";
         }
-    } while (opcion != 4);
+    } while (opcion != 5);
 
     return 0;
 }
@@ -61,14 +65,24 @@ void mostrarMenu() {
     cout << "\n--- Gestor de Tareas ---\n";
     cout << "1. Agregar tarea\n";
     cout << "2. Mostrar tareas\n";
-    cout << "3. Eliminar tarea\n";
-    cout << "4. Salir y guardar\n";
+    cout << "3. Marcar tarea como completada\n";
+    cout << "4. Eliminar tarea\n";
+    cout << "5. Salir y guardar\n";
     cout << "Selecciona una opción: ";
 }
 
 void agregarTarea(vector<Tarea>& tareas) {
     Tarea nuevaTarea;
-    nuevaTarea.id = tareas.size() + 1;
+    static int ultimoId = 0;
+    if (!tareas.empty()) {
+        // Buscar el mayor ID existente
+        for (const auto& tarea : tareas) {
+            if (tarea.id > ultimoId) {
+                ultimoId = tarea.id;
+            }
+        }
+    }
+    nuevaTarea.id = ++ultimoId;
     cout << "Descripción de la tarea: ";
     getline(cin, nuevaTarea.descripcion);
     nuevaTarea.completada = false;
@@ -82,11 +96,37 @@ void mostrarTareas(const vector<Tarea>& tareas) {
         return;
     }
     cout << "\n--- Lista de Tareas ---\n";
+    int numero = 1;
     for (const auto& tarea : tareas) {
+        // Mostrar ID, estado y descripción (limpiando saltos de línea)
         cout << "ID: " << tarea.id << " | ";
         cout << (tarea.completada ? "[X] " : "[ ] ");
-        cout << tarea.descripcion << endl;
+        string desc = tarea.descripcion;
+        for (char& c : desc) {
+            if (c == '\n') c = ' ';
+        }
+        cout << "\"" << desc << "\"" << endl;
+        ++numero;
     }
+}
+
+void marcarTareaCompletada(vector<Tarea>& tareas) {
+    if (tareas.empty()) {
+        cout << "No hay tareas para marcar.\n";
+        return;
+    }
+    mostrarTareas(tareas);
+    int idMarcar;
+    cout << "Ingresa el ID de la tarea a marcar como completada: ";
+    cin >> idMarcar;
+    for (auto& tarea : tareas) {
+        if (tarea.id == idMarcar) {
+            tarea.completada = true;
+            cout << "Tarea ID " << tarea.id << " marcada como completada.\n";
+            return;
+        }
+    }
+    cout << "ID no encontrado.\n";
 }
 
 void eliminarTarea(vector<Tarea>& tareas) {
